@@ -1,36 +1,164 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PropVault — Property Management SaaS
 
-## Getting Started
+A world-class multi-tenant property management platform built with Next.js 14 and Supabase.
 
-First, run the development server:
+## 🚀 Tech Stack
+
+- **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS
+- **Backend**: Next.js API Routes (serverless)
+- **Database**: PostgreSQL via Supabase (with Row Level Security)
+- **Auth**: Supabase Auth (email/password + OAuth ready)
+- **Storage**: Supabase Storage
+- **Real-time**: Supabase Realtime (WebSockets)
+- **State**: Zustand + TanStack Query
+- **Deployment**: Vercel + Supabase
+
+## 📦 Features
+
+- ✅ Multi-tenant architecture with complete data isolation
+- ✅ Role-based access control (RBAC)
+- ✅ Property portfolio management
+- ✅ Work order lifecycle tracking
+- ✅ Tenant/occupant management
+- ✅ Service provider directory
+- ✅ Invoicing and financial tracking
+- ✅ Real-time notifications
+- ✅ Document storage
+- ✅ Analytics dashboard
+- ✅ Audit logging
+
+## 🛠 Setup
+
+### 1. Clone and install
+
+```bash
+git clone <your-repo>
+cd propvault
+npm install
+```
+
+### 2. Create Supabase Project
+
+1. Go to [supabase.com](https://supabase.com) and create a new project
+2. Go to SQL Editor and run the scripts from:
+   - `SUPABASE_SCHEMA.sql` (Database schema)
+   - `SUPABASE_RLS_POLICIES.sql` (Row Level Security policies)
+   - `SUPABASE_STORAGE.sql` (Storage buckets)
+
+### 3. Configure environment
+
+```bash
+cp .env.example .env.local
+# Fill in your Supabase credentials
+```
+
+### 4. Run development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Open http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Deployment (Vercel)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 1. Push to GitHub
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+git init
+git add .
+git commit -m "Initial commit"
+git remote add origin <your-github-repo>
+git push -u origin main
+```
 
-## Learn More
+### 2. Deploy to Vercel
 
-To learn more about Next.js, take a look at the following resources:
+1. Go to [vercel.com](https://vercel.com) → New Project → Import your repo
+2. Add all environment variables from `.env.example`
+3. Deploy
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 3. Configure GitHub Secrets (for CI/CD)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+In your GitHub repo → Settings → Secrets → Actions, add:
+- `VERCEL_TOKEN` — from vercel.com/account/tokens
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
-## Deploy on Vercel
+## 🔐 Environment Variables
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/public key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server-only) |
+| `NEXT_PUBLIC_APP_URL` | Your app URL |
+| `NEXT_PUBLIC_APP_NAME` | Your app name |
+| `RESEND_API_KEY` | Resend email API key (optional) |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🏗 Architecture
+
+```
+src/
+├── app/             Next.js App Router pages + API routes
+├── components/      Reusable UI components
+├── hooks/           React Query + Zustand hooks
+├── lib/             Supabase clients, utilities, validation
+├── store/           Zustand stores
+└── types/           TypeScript types
+```
+
+## 👥 User Roles
+
+| Role | Access |
+|------|--------|
+| ORG_ADMIN | Full access to everything |
+| PROPERTY_MANAGER | Properties, tenants, work orders |
+| MAINTENANCE_STAFF | Work orders (view + update) |
+| ACCOUNTANT | Invoices and financial data |
+| VIEWER | Read-only access |
+
+## 🐳 Docker
+
+Build and run with Docker:
+
+```bash
+# Build
+docker-compose build
+
+# Run
+docker-compose up
+
+# Or use Docker directly
+docker build -t propvault .
+docker run -p 3000:3000 --env-file .env.local propvault
+```
+
+## 📚 Documentation
+
+- [Batch 01](./README_BATCH_01.md) - Project Setup
+- [Batch 02](./README_BATCH_02.md) - Authentication & RBAC
+- [Batch 03](./README_BATCH_03.md) - Core API Routes
+- [Batch 04](./BATCH_04_PROGRESS.md) - Providers, Invoices, Docs
+- [Batch 05](./BATCH_05_PROGRESS.md) - Frontend Pages
+- [Batch 06](./BATCH_06_PROGRESS.md) - Real-time, Docker, Deployment
+
+## 🧪 Testing
+
+```bash
+# Type check
+npx tsc --noEmit
+
+# Lint
+npm run lint
+
+# Build
+npm run build
+```
+
+## 📄 License
+
+MIT
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
