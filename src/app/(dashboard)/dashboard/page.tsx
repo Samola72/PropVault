@@ -12,10 +12,19 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function loadUser() {
-      const supabase = getSupabaseClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      setLoading(false);
+      try {
+        console.log("Loading user...");
+        const supabase = getSupabaseClient();
+        console.log("Supabase client created");
+        const { data: { user }, error } = await supabase.auth.getUser();
+        console.log("User data:", user);
+        console.log("Error:", error);
+        setUser(user);
+      } catch (err) {
+        console.error("Error loading user:", err);
+      } finally {
+        setLoading(false);
+      }
     }
     loadUser();
   }, []);
