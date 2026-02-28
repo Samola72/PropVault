@@ -6,12 +6,12 @@ import {
   serverError,
   success,
 } from "@/lib/api/helpers";
-import { getSupabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createRentPaymentLink } from "@/lib/stripe/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await getSupabaseServer();
+    const supabase = await createServerSupabaseClient();
     const ctx = await getRequestContext(supabase);
     if (!ctx) return unauthorized();
 
@@ -33,30 +33,30 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error || !invoice) return badRequest("Invoice not found");
-    if (!invoice.occupant?.email)
+    if (!(invoice as any).occupant?.email)
       return badRequest("Tenant email is required to send payment link");
-    if (invoice.status === "PAID")
+    if ((invoice as any).status === "PAID")
       return badRequest("Invoice is already paid");
 
-    const amountCents = Math.round(invoice.balance * 100);
+    const amountCents = Math.round((invoice as any).balance * 100);
     if (amountCents <= 0) return badRequest("Invoice balance is zero");
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     const paymentUrl = await createRentPaymentLink({
       amount: amountCents,
-      description: `${invoice.type === "RENT" ? "Rent" : "Payment"} — ${invoice.property?.name} — Invoice ${invoice.invoice_number}`,
-      tenantEmail: invoice.occupant.email,
-      invoiceId: invoice.id,
+      description: `${(invoice as any).type === "RENT" ? "Rent" : "Payment"} — ${(invoice as any).property?.name} — Invoice ${(invoice as any).invoice_number}`,
+      tenantEmail: (invoice as any).occupant.email,
+      invoiceId: (invoice as any).id,
       organizationId: ctx.organizationId,
-      successUrl: `${appUrl}/invoices/${invoice.id}?payment=success`,
+      successUrl: `${appUrl}/invoices/${(invoice as any).id}?payment=success`,
     });
 
     // Save payment link to invoice
-    await supabase
+    await (supabase as any)
       .from("invoices")
       .update({ stripe_payment_link: paymentUrl })
-      .eq("id", invoice.id);
+      .eq("id", (invoice as any).id);
 
     return success({ url: paymentUrl });
   } catch (err: any) {

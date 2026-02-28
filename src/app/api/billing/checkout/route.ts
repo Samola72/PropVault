@@ -6,7 +6,7 @@ import {
   serverError,
   success,
 } from "@/lib/api/helpers";
-import { getSupabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
   PLANS,
   getOrCreateStripeCustomer,
@@ -16,7 +16,7 @@ import {
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await getSupabaseServer();
+    const supabase = await createServerSupabaseClient();
     const ctx = await getRequestContext(supabase);
     if (!ctx) return unauthorized();
 
@@ -47,18 +47,18 @@ export async function POST(req: NextRequest) {
 
     // Get or create Stripe customer
     const customerId = await getOrCreateStripeCustomer(
-      org.id,
-      user?.email || ctx.user.email || "",
-      org.name,
-      org.stripe_customer_id
+      (org as any).id,
+      (user as any)?.email || ctx.user.email || "",
+      (org as any).name,
+      (org as any).stripe_customer_id
     );
 
     // Save customer ID if newly created
-    if (!org.stripe_customer_id) {
-      await supabase
+    if (!(org as any).stripe_customer_id) {
+      await (supabase as any)
         .from("organizations")
         .update({ stripe_customer_id: customerId })
-        .eq("id", org.id);
+        .eq("id", (org as any).id);
     }
 
     const plan = PLANS[planKey];
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     const checkoutUrl = await createCheckoutSession({
       customerId,
       priceId,
-      organizationId: org.id,
+      organizationId: (org as any).id,
       successUrl: `${appUrl}/settings/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${appUrl}/settings/billing?canceled=true`,
       trialDays: 14,

@@ -5,12 +5,12 @@ import {
   serverError,
   success,
 } from "@/lib/api/helpers";
-import { getSupabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createPortalSession } from "@/lib/stripe/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await getSupabaseServer();
+    const supabase = await createServerSupabaseClient();
     const ctx = await getRequestContext(supabase);
     if (!ctx) return unauthorized();
 
@@ -20,13 +20,13 @@ export async function POST(req: NextRequest) {
       .eq("id", ctx.organizationId)
       .single();
 
-    if (!org?.stripe_customer_id) {
+    if (!(org as any)?.stripe_customer_id) {
       return serverError("No billing account found. Please subscribe first.");
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const portalUrl = await createPortalSession(
-      org.stripe_customer_id,
+      (org as any).stripe_customer_id,
       `${appUrl}/settings/billing`
     );
 
