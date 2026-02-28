@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { CardSkeleton } from "@/components/shared/loading-skeleton";
 import { formatCurrency } from "@/lib/utils";
 import type { Property, PropertyStatus } from "@/types";
+import { ROUTES } from "@/lib/constants";
 
 const STATUSES: { value: PropertyStatus | ""; label: string }[] = [
   { value: "", label: "All" },

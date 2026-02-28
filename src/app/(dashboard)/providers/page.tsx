@@ -9,6 +9,7 @@ import { SearchInput } from "@/components/shared/search-input";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { EmptyState } from "@/components/shared/empty-state";
 import { CardSkeleton } from "@/components/shared/loading-skeleton";
+import { ProviderForm } from "@/components/forms/provider-form";
 import { formatCurrency } from "@/lib/utils";
 import { WORK_ORDER_CATEGORIES } from "@/lib/constants";
 
@@ -16,6 +17,7 @@ export default function ProvidersPage() {
   const [search, setSearch] = useState("");
   const [specialty, setSpecialty] = useState("");
   const [availability, setAvailability] = useState("");
+  const [showForm, setShowForm] = useState(false);
 
   const { data, isLoading } = useProviders({ search, specialty: specialty || undefined, availability_status: availability || undefined });
   const providers = data?.data || [];

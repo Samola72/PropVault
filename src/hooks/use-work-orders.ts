@@ -99,3 +99,19 @@ export function useUpdateWorkOrder() {
     onError: (err: Error) => toast.error(err.message),
   });
 }
+
+export function useDeleteWorkOrder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`${BASE}/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete work order");
+      return (await res.json()).data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["work-orders"] });
+      toast.success("Work order deleted");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}

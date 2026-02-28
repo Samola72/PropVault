@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import { getSupabaseClient } from "@/lib/supabase/client";
-import type { User } from "@/types/database";
 
 export function useOrganization() {
   const { user, organization, setUser, setOrganization, setLoading, clearAuth } =
@@ -15,35 +14,65 @@ export function useOrganization() {
 
     async function loadUserAndOrg() {
       try {
-        const {
-          data: { user: authUser },
-        } = await supabase.auth.getUser();
+        setLoading(true);
+        console.log("Loading user and org...");
+        
+        const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+        
+        console.log("Auth user:", authUser);
+        console.log("Auth error:", authError);
 
         if (!authUser) {
+          console.log("No auth user, clearing");
           clearAuth();
           setIsInitialized(true);
+          setLoading(false);
           return;
         }
 
-        // Load user profile
-        const { data: userProfile } = await supabase
+        // Load user profile from database
+        const { data: userProfile, error: userError } = await supabase
           .from("users")
-          .select("*, organization:organizations(*)")
+          .select("*")
           .eq("auth_user_id", authUser.id)
           .single();
 
-        if (userProfile) {
-          const typedProfile = userProfile as any;
-          setUser(typedProfile as User);
-          if (typedProfile.organization) {
-            setOrganization(typedProfile.organization);
+        console.log("User profile:", userProfile);
+        console.log("User error:", userError);
+
+        if (userError || !userProfile) {
+          console.log("No user profile found - needs onboarding");
+          setUser(null);
+          setOrganization(null);
+          setIsInitialized(true);
+          setLoading(false);
+          return;
+        }
+
+        setUser(userProfile);
+
+        // Load organization
+        if ((userProfile as any).organization_id) {
+          const { data: org, error: orgError } = await supabase
+            .from("organizations")
+            .select("*")
+            .eq("id", (userProfile as any).organization_id)
+            .single();
+
+          console.log("Organization:", org);
+          console.log("Org error:", orgError);
+
+          if (!orgError && org) {
+            setOrganization(org);
           }
         }
+        
       } catch (error) {
         console.error("Error loading user:", error);
-        clearAuth();
       } finally {
+        console.log("Setting initialized to true");
         setIsInitialized(true);
+        setLoading(false);
       }
     }
 

@@ -59,3 +59,18 @@ export async function deleteFile(
   const supabase = getSupabaseClient();
   await supabase.storage.from(bucket).remove([path]);
 }
+
+export function getFileIcon(fileType: string): string {
+  if (fileType.startsWith("image/")) return "🖼️";
+  if (fileType === "application/pdf") return "📄";
+  if (fileType.includes("word")) return "📝";
+  if (fileType.includes("excel") || fileType.includes("spreadsheet")) return "📊";
+  if (fileType.includes("text")) return "📃";
+  return "📁";
+}
+
+export function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}

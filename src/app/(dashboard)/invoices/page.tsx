@@ -9,6 +9,7 @@ import { SearchInput } from "@/components/shared/search-input";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { EmptyState } from "@/components/shared/empty-state";
 import { TableRowSkeleton } from "@/components/shared/loading-skeleton";
+import { InvoiceForm } from "@/components/forms/invoice-form";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { InvoiceStatus } from "@/types";
 

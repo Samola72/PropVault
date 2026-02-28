@@ -15,11 +15,11 @@ const documentSchema = z.object({
   file_url: z.string().url(),
   file_type: z.string(),
   file_size: z.number(),
-  category: z.enum(["LEASE", "DEED", "INSURANCE", "PERMIT", "INSPECTION", "INVOICE", "OTHER"]),
+  category: z.string().min(1),
+  description: z.string().optional().nullable(),
   property_id: z.string().uuid().optional().nullable(),
   occupant_id: z.string().uuid().optional().nullable(),
   work_order_id: z.string().uuid().optional().nullable(),
-  tags: z.array(z.string()).default([]),
 });
 
 export async function GET(request: NextRequest) {

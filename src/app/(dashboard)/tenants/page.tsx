@@ -2,37 +2,44 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Users, Phone, Mail, Calendar, Building2 } from "lucide-react";
+import { Users, Mail, Building2, Calendar } from "lucide-react";
 import { useTenants } from "@/hooks/use-tenants";
 import { PageHeader } from "@/components/shared/page-header";
 import { SearchInput } from "@/components/shared/search-input";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { EmptyState } from "@/components/shared/empty-state";
 import { TableRowSkeleton } from "@/components/shared/loading-skeleton";
-import { formatDate, formatCurrency, generateInitials } from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/utils";
+
+const today = new Date();
+const thirtyDays = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+function generateInitials(name: string) {
+  return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+}
 
 export default function TenantsPage() {
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState<"ACTIVE" | "INACTIVE" | "EVICTION" | "PENDING" | "">("");
 
-  const { data, isLoading } = useTenants({ search, status: status || undefined });
+  const { data, isLoading } = useTenants({
+    search,
+    status: status || undefined,
+  });
   const tenants = data?.data || [];
-
-  const today = new Date();
-  const thirtyDays = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
 
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Tenants"
-        description={`${data?.total ?? 0} tenants total`}
+        description={`${data?.total ?? 0} total tenants`}
         actionLabel="Add Tenant"
         actionHref="/tenants/new"
       />
 
       <div className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-col sm:flex-row gap-3">
         <SearchInput value={search} onChange={setSearch} placeholder="Search by name, email, phone..." className="flex-1" />
-        <select value={status} onChange={(e) => setStatus(e.target.value)}
+        <select value={status} onChange={(e) => setStatus(e.target.value as any)}
           className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
           <option value="">All Statuses</option>
           {["ACTIVE", "INACTIVE", "EVICTION", "PENDING"].map(s => <option key={s} value={s}>{s}</option>)}

@@ -29,11 +29,16 @@ export default function SettingsPage() {
         <div className="w-full lg:w-56 flex-shrink-0">
           <nav className="bg-white rounded-2xl border border-gray-100 p-2">
             {tabs.map(({ id, label, icon: Icon }) => (
-              <button key={id} onClick={() => setActiveTab(id)}
+              <button 
+                key={id} 
+                type="button"
+                onClick={() => setActiveTab(id)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition mb-0.5 ${
                   activeTab === id ? "bg-blue-50 text-blue-700" : "text-gray-600 hover:bg-gray-50"
-                }`}>
-                <Icon className="w-4 h-4" />{label}
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{label}</span>
               </button>
             ))}
           </nav>
@@ -72,6 +77,12 @@ export default function SettingsPage() {
             </div>
           )}
 
+          {activeTab === "profile" && !user && (
+            <div className="text-center py-12">
+              <p className="text-gray-500">Loading profile data...</p>
+            </div>
+          )}
+
           {activeTab === "organization" && org && (
             <div className="space-y-6">
               <h2 className="text-lg font-semibold text-gray-900">Organization Settings</h2>
@@ -90,6 +101,12 @@ export default function SettingsPage() {
               <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition">
                 Save Changes
               </button>
+            </div>
+          )}
+
+          {activeTab === "organization" && !org && (
+            <div className="text-center py-12">
+              <p className="text-gray-500">Loading organization data...</p>
             </div>
           )}
 

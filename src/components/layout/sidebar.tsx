@@ -10,6 +10,7 @@ import {
 import { cn, generateInitials } from "@/lib/utils";
 import { useUIStore } from "@/store/ui-store";
 import { useCurrentUser, useCurrentOrg } from "@/hooks/use-organization";
+import { useMessages } from "@/hooks/use-messages";
 import { signOut } from "@/lib/auth/actions";
 
 const navItems = [
@@ -29,6 +30,8 @@ export function Sidebar() {
   const user = useCurrentUser();
   const org = useCurrentOrg();
   const { sidebarCollapsed, toggleSidebarCollapsed } = useUIStore();
+  const { data: messagesData } = useMessages("inbox");
+  const unreadMessages = (messagesData?.data || []).filter((m: any) => !m.is_read).length;
 
   return (
     <aside className={cn(
@@ -62,18 +65,29 @@ export function Sidebar() {
       <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-0.5">
         {navItems.map(({ href, icon: Icon, label }) => {
           const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(`${href}/`));
+          const badgeCount = label === "Messages" ? unreadMessages : 0;
           return (
             <Link key={href} href={href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all relative",
                 isActive ? "bg-blue-50 text-blue-700" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
                 sidebarCollapsed && "justify-center px-2"
               )}
               title={sidebarCollapsed ? label : undefined}
             >
               <Icon className={cn("flex-shrink-0 w-4 h-4", sidebarCollapsed && "w-5 h-5", isActive && "text-blue-600")} />
-              {!sidebarCollapsed && <span className="truncate">{label}</span>}
-              {isActive && !sidebarCollapsed && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-600" />}
+              {!sidebarCollapsed && <span className="truncate flex-1">{label}</span>}
+              {!sidebarCollapsed && badgeCount > 0 && (
+                <span className="w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">
+                  {badgeCount > 9 ? "9+" : badgeCount}
+                </span>
+              )}
+              {sidebarCollapsed && badgeCount > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500" />
+              )}
+              {isActive && !sidebarCollapsed && badgeCount === 0 && (
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-600" />
+              )}
             </Link>
           );
         })}
