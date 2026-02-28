@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,24 +15,24 @@ import { FormActions } from "@/components/forms/form-actions";
 import { PageHeader } from "@/components/shared/page-header";
 import { ROUTES } from "@/lib/constants";
 
-const tenantSchema = z.object({
+const tenantFormSchema = z.object({
+  property_id: z.string().uuid("Invalid property"),
   full_name: z.string().min(2, "Full name is required"),
-  email: z.string().email("Valid email required"),
+  email: z.string().email("Valid email is required"),
   phone: z.string().optional(),
   national_id: z.string().optional(),
-  property_id: z.string().uuid("Please select a property"),
-  monthly_rent: z.coerce.number().min(1, "Monthly rent is required"),
-  security_deposit: z.coerce.number().min(0).default(0),
   lease_start: z.string().min(1, "Lease start date is required"),
   lease_end: z.string().min(1, "Lease end date is required"),
-  status: z.enum(["ACTIVE", "INACTIVE", "EVICTION", "PENDING"]).default("ACTIVE"),
+  monthly_rent: z.number().min(0, "Monthly rent is required"),
+  security_deposit: z.number().min(0),
+  status: z.enum(["ACTIVE", "INACTIVE", "EVICTION", "PENDING"]),
   emergency_contact_name: z.string().optional(),
   emergency_contact_phone: z.string().optional(),
   emergency_contact_relationship: z.string().optional(),
   notes: z.string().optional(),
 });
 
-type TenantFormData = z.infer<typeof tenantSchema>;
+type TenantFormData = z.infer<typeof tenantFormSchema>;
 
 const TENANT_STATUSES = [
   { value: "ACTIVE", label: "Active" },
@@ -40,7 +41,7 @@ const TENANT_STATUSES = [
   { value: "EVICTION", label: "Eviction in progress" },
 ];
 
-export default function NewTenantPage() {
+function NewTenantContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const defaultPropertyId = searchParams.get("property_id") || "";
@@ -53,7 +54,7 @@ export default function NewTenantPage() {
     handleSubmit,
     formState: { errors },
   } = useForm<TenantFormData>({
-    resolver: zodResolver(tenantSchema),
+    resolver: zodResolver(tenantFormSchema),
     defaultValues: {
       status: "ACTIVE",
       security_deposit: 0,
@@ -182,7 +183,7 @@ export default function NewTenantPage() {
               step="0.01"
               placeholder="2500.00"
               error={errors.monthly_rent?.message}
-              {...register("monthly_rent")}
+              {...register("monthly_rent", { valueAsNumber: true })}
             />
             <FormField
               label="Security Deposit ($)"
@@ -191,7 +192,7 @@ export default function NewTenantPage() {
               step="0.01"
               placeholder="5000.00"
               error={errors.security_deposit?.message}
-              {...register("security_deposit")}
+              {...register("security_deposit", { valueAsNumber: true })}
             />
           </div>
         </FormSection>
@@ -239,5 +240,13 @@ export default function NewTenantPage() {
         />
       </form>
     </div>
+  );
+}
+
+export default function NewTenantPage() {
+  return (
+    <Suspense fallback={<div className="max-w-3xl mx-auto p-6">Loading...</div>}>
+      <NewTenantContent />
+    </Suspense>
   );
 }

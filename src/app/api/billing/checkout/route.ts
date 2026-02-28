@@ -16,8 +16,7 @@ import {
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createServerSupabaseClient();
-    const ctx = await getRequestContext(supabase);
+    const ctx = await getRequestContext();
     if (!ctx) return unauthorized();
 
     const { planKey, interval } = (await req.json()) as {
@@ -28,6 +27,8 @@ export async function POST(req: NextRequest) {
     if (!planKey || !PLANS[planKey]) {
       return badRequest("Invalid plan");
     }
+
+    const supabase = await createServerSupabaseClient();
 
     // Fetch org details
     const { data: org, error: orgErr } = await supabase

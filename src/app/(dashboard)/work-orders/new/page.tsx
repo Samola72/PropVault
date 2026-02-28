@@ -1,9 +1,9 @@
 "use client";
 
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useCreateWorkOrder } from "@/hooks/use-work-orders";
 import { useProperties } from "@/hooks/use-properties";
 import { useProviders } from "@/hooks/use-providers";
@@ -15,25 +15,7 @@ import { FormSection } from "@/components/forms/form-section";
 import { FormActions } from "@/components/forms/form-actions";
 import { PageHeader } from "@/components/shared/page-header";
 import { ROUTES, WORK_ORDER_CATEGORIES } from "@/lib/constants";
-
-const workOrderSchema = z.object({
-  title: z.string().min(5, "Title must be at least 5 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
-  category: z.enum([
-    "PLUMBING", "ELECTRICAL", "HVAC", "APPLIANCE", "STRUCTURAL",
-    "PEST_CONTROL", "LANDSCAPING", "CLEANING", "SECURITY", "PAINTING",
-    "FLOORING", "ROOFING", "WINDOWS_DOORS", "GENERAL", "OTHER",
-  ]),
-  priority: z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW"]),
-  property_id: z.string().uuid("Please select a property"),
-  occupant_id: z.string().optional(),
-  assigned_to: z.string().optional(),
-  estimated_cost: z.coerce.number().min(0).optional().nullable(),
-  due_date: z.string().optional().nullable(),
-  notes: z.string().optional(),
-});
-
-type WorkOrderFormData = z.infer<typeof workOrderSchema>;
+import { workOrderSchema, type WorkOrderFormData } from "@/lib/validations/work-order";
 
 const PRIORITIES = [
   { value: "CRITICAL", label: "Critical — Emergency" },
@@ -42,7 +24,7 @@ const PRIORITIES = [
   { value: "LOW", label: "Low — Not urgent" },
 ];
 
-export default function NewWorkOrderPage() {
+function NewWorkOrderContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const defaultPropertyId = searchParams.get("property_id") || "";
@@ -60,7 +42,7 @@ export default function NewWorkOrderPage() {
     resolver: zodResolver(workOrderSchema),
     defaultValues: {
       priority: "MEDIUM",
-      category: "GENERAL",
+      category: "OTHER",
       property_id: defaultPropertyId,
     },
   });
@@ -126,7 +108,7 @@ export default function NewWorkOrderPage() {
             <FormSelect
               label="Category"
               required
-              options={WORK_ORDER_CATEGORIES}
+              options={[...WORK_ORDER_CATEGORIES]}
               error={errors.category?.message}
               {...register("category")}
             />
@@ -175,7 +157,7 @@ export default function NewWorkOrderPage() {
               step="0.01"
               placeholder="0.00"
               error={errors.estimated_cost?.message}
-              {...register("estimated_cost")}
+              {...register("estimated_cost", { valueAsNumber: true })}
             />
             <FormField
               label="Due Date"
@@ -202,5 +184,13 @@ export default function NewWorkOrderPage() {
         />
       </form>
     </div>
+  );
+}
+
+export default function NewWorkOrderPage() {
+  return (
+    <Suspense fallback={<div className="max-w-3xl mx-auto p-6">Loading...</div>}>
+      <NewWorkOrderContent />
+    </Suspense>
   );
 }

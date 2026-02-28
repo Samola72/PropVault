@@ -81,7 +81,7 @@ export function InvoiceForm({ isOpen, onClose, onSuccess }: InvoiceFormProps) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Create Invoice" size="lg">
+    <Modal open={isOpen} onClose={onClose} title="Create Invoice" size="lg">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
           {/* Property */}

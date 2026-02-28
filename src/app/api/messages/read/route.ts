@@ -11,7 +11,7 @@ export async function PATCH(req: NextRequest) {
 
     const { message_id } = await req.json();
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("messages")
       .update({ is_read: true })
       .eq("id", message_id)

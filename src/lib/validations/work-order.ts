@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const workOrderSchema = z.object({
   property_id: z.string().uuid("Invalid property"),
-  occupant_id: z.string().uuid().optional().nullable(),
+  occupant_id: z.string().uuid().optional(),
   title: z.string().min(5, "Title must be at least 5 characters").max(500),
   description: z.string().min(10, "Description must be at least 10 characters"),
   category: z.enum([
@@ -10,14 +10,12 @@ export const workOrderSchema = z.object({
     "PEST_CONTROL", "CLEANING", "LANDSCAPING", "SECURITY",
     "PAINTING", "FLOORING", "ROOFING", "OTHER",
   ]),
-  priority: z
-    .enum(["CRITICAL", "HIGH", "MEDIUM", "LOW"])
-    .default("MEDIUM"),
-  estimated_cost: z.coerce.number().min(0).optional().nullable(),
-  due_date: z.string().optional().nullable(),
-  assigned_to: z.string().uuid().optional().nullable(),
-  notes: z.string().optional().nullable(),
-  internal_notes: z.string().optional().nullable(),
+  priority: z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW"]),
+  estimated_cost: z.number().min(0).optional(),
+  due_date: z.string().optional(),
+  assigned_to: z.string().uuid().optional(),
+  notes: z.string().optional(),
+  internal_notes: z.string().optional(),
 });
 
 export const workOrderUpdateSchema = z.object({
@@ -26,7 +24,7 @@ export const workOrderUpdateSchema = z.object({
     "COMPLETED", "CLOSED", "CANCELLED",
   ]),
   message: z.string().min(1, "Update message is required"),
-  actual_cost: z.coerce.number().min(0).optional().nullable(),
+  actual_cost: z.number().min(0).optional(),
   images: z.array(z.string()).default([]),
 });
 

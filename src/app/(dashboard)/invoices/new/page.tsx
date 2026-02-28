@@ -1,10 +1,10 @@
 "use client";
 
+import { Suspense } from "react";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Plus, Trash2 } from "lucide-react";
 import { useCreateInvoice } from "@/hooks/use-invoices";
 import { useProperties } from "@/hooks/use-properties";
@@ -18,6 +18,7 @@ import { FormActions } from "@/components/forms/form-actions";
 import { PageHeader } from "@/components/shared/page-header";
 import { formatCurrency } from "@/lib/utils";
 import { ROUTES } from "@/lib/constants";
+import { invoiceSchema, type InvoiceFormData } from "@/lib/validations/invoice";
 
 interface LineItem {
   description: string;
@@ -26,34 +27,18 @@ interface LineItem {
   total: number;
 }
 
-const invoiceSchema = z.object({
-  type: z.enum(["RENT", "MAINTENANCE", "UTILITY", "DEPOSIT", "LATE_FEE", "OTHER"]),
-  property_id: z.string().uuid("Please select a property"),
-  occupant_id: z.string().optional(),
-  work_order_id: z.string().optional(),
-  issue_date: z.string().min(1, "Issue date is required"),
-  due_date: z.string().min(1, "Due date is required"),
-  tax_rate: z.coerce.number().min(0).max(100).default(0),
-  discount_amount: z.coerce.number().min(0).default(0),
-  notes: z.string().optional(),
-  currency: z.string().default("USD"),
-});
-
-type InvoiceFormData = z.infer<typeof invoiceSchema>;
-
 const INVOICE_TYPES = [
   { value: "RENT", label: "Rent" },
   { value: "MAINTENANCE", label: "Maintenance / Repair" },
   { value: "UTILITY", label: "Utility" },
   { value: "DEPOSIT", label: "Security Deposit" },
-  { value: "LATE_FEE", label: "Late Fee" },
   { value: "OTHER", label: "Other" },
 ];
 
 const today = new Date().toISOString().split("T")[0];
 const defaultDue = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
-export default function NewInvoicePage() {
+function NewInvoiceForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const defaultPropertyId = searchParams.get("property_id") || "";
@@ -284,7 +269,7 @@ export default function NewInvoicePage() {
                   min="0"
                   max="100"
                   step="0.1"
-                  {...register("tax_rate")}
+                  {...register("tax_rate", { valueAsNumber: true })}
                   className="w-full px-3 py-1.5 border border-gray-200 rounded-xl text-sm text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -297,7 +282,7 @@ export default function NewInvoicePage() {
                   type="number"
                   min="0"
                   step="0.01"
-                  {...register("discount_amount")}
+                  {...register("discount_amount", { valueAsNumber: true })}
                   className="w-full px-3 py-1.5 border border-gray-200 rounded-xl text-sm text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -326,5 +311,13 @@ export default function NewInvoicePage() {
         />
       </form>
     </div>
+  );
+}
+
+export default function NewInvoicePage() {
+  return (
+    <Suspense fallback={<div className="max-w-3xl mx-auto p-6">Loading...</div>}>
+      <NewInvoiceForm />
+    </Suspense>
   );
 }

@@ -63,7 +63,7 @@ export function WorkOrderForm({ isOpen, onClose, onSuccess }: WorkOrderFormProps
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="New Work Order" size="lg">
+    <Modal open={isOpen} onClose={onClose} title="New Work Order" size="lg">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
           {/* Property */}

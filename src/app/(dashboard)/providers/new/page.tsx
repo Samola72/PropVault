@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useState } from "react";
 import { X } from "lucide-react";
 import { useCreateProvider } from "@/hooks/use-providers";
@@ -14,20 +13,7 @@ import { FormSection } from "@/components/forms/form-section";
 import { FormActions } from "@/components/forms/form-actions";
 import { PageHeader } from "@/components/shared/page-header";
 import { ROUTES, WORK_ORDER_CATEGORIES } from "@/lib/constants";
-
-const providerSchema = z.object({
-  name: z.string().min(2, "Name is required"),
-  email: z.string().email("Valid email required"),
-  phone: z.string().min(10, "Phone number is required"),
-  company_name: z.string().optional(),
-  license_number: z.string().optional(),
-  hourly_rate: z.coerce.number().min(0).optional().nullable(),
-  availability_status: z.enum(["AVAILABLE", "BUSY", "UNAVAILABLE"]).default("AVAILABLE"),
-  specialties: z.array(z.string()).min(1, "Select at least one specialty"),
-  notes: z.string().optional(),
-});
-
-type ProviderFormData = z.infer<typeof providerSchema>;
+import { providerSchema, type ProviderFormData } from "@/lib/validations/provider";
 
 const AVAILABILITY_OPTIONS = [
   { value: "AVAILABLE", label: "Available — Ready for new jobs" },
@@ -35,10 +21,12 @@ const AVAILABILITY_OPTIONS = [
   { value: "UNAVAILABLE", label: "Unavailable — Not accepting work" },
 ];
 
+type Specialty = "PLUMBING" | "ELECTRICAL" | "HVAC" | "APPLIANCE" | "STRUCTURAL" | "PEST_CONTROL" | "CLEANING" | "LANDSCAPING" | "SECURITY" | "PAINTING" | "FLOORING" | "ROOFING" | "OTHER";
+
 export default function NewProviderPage() {
   const router = useRouter();
   const createProvider = useCreateProvider();
-  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
+  const [selectedSpecialties, setSelectedSpecialties] = useState<Specialty[]>([]);
 
   const {
     register,
@@ -54,9 +42,9 @@ export default function NewProviderPage() {
   });
 
   function toggleSpecialty(value: string) {
-    const updated = selectedSpecialties.includes(value)
+    const updated = selectedSpecialties.includes(value as Specialty)
       ? selectedSpecialties.filter((s) => s !== value)
-      : [...selectedSpecialties, value];
+      : [...selectedSpecialties, value as Specialty];
     setSelectedSpecialties(updated);
     setValue("specialties", updated, { shouldValidate: true });
   }
@@ -123,7 +111,7 @@ export default function NewProviderPage() {
               step="0.01"
               placeholder="75.00"
               error={errors.hourly_rate?.message}
-              {...register("hourly_rate")}
+              {...register("hourly_rate", { valueAsNumber: true })}
             />
           </div>
           <FormSelect

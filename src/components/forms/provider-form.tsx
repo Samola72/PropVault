@@ -53,7 +53,7 @@ export function ProviderForm({ isOpen, onClose, onSuccess }: ProviderFormProps) 
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add Service Provider" size="lg">
+    <Modal open={isOpen} onClose={onClose} title="Add Service Provider" size="lg">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
           {/* Name */}

@@ -10,9 +10,10 @@ import { createPortalSession } from "@/lib/stripe/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createServerSupabaseClient();
-    const ctx = await getRequestContext(supabase);
+    const ctx = await getRequestContext();
     if (!ctx) return unauthorized();
+
+    const supabase = await createServerSupabaseClient();
 
     const { data: org } = await supabase
       .from("organizations")

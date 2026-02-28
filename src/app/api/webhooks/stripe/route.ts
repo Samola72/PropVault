@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Log event
-  await supabase.from("stripe_events").insert({
+  await (supabase as any).from("stripe_events").insert({
     id: event.id,
     type: event.type,
     data: event.data as any,
@@ -82,9 +82,9 @@ export async function POST(req: NextRequest) {
       case "invoice.payment_succeeded": {
         const inv = event.data.object as Stripe.Invoice;
         // Update subscription billing period in org
-        if (inv.subscription) {
+        if ((inv as any).subscription) {
           const sub = await stripe.subscriptions.retrieve(
-            inv.subscription as string
+            (inv as any).subscription as string
           );
           await handleSubscriptionChange(supabase, sub);
         }
@@ -100,13 +100,13 @@ export async function POST(req: NextRequest) {
           .eq("stripe_customer_id", customerId)
           .single();
         if (org) {
-          await supabase
+          await (supabase as any)
             .from("organizations")
             .update({ plan_status: "past_due" })
-            .eq("id", org.id);
+            .eq("id", (org as any).id);
           await createSystemNotification(
             supabase,
-            org.id,
+            (org as any).id,
             "Payment Failed",
             "Your subscription payment failed. Please update your payment method to avoid service interruption.",
             "GENERAL"
@@ -142,10 +142,10 @@ export async function POST(req: NextRequest) {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 async function handleSubscriptionChange(supabase: any, sub: Stripe.Subscription) {
-  const orgId = sub.metadata?.organization_id;
+  const orgId = (sub as any).metadata?.organization_id;
   if (!orgId) return;
 
-  const priceId = sub.items.data[0]?.price?.id;
+  const priceId = (sub as any).items.data[0]?.price?.id;
   const planKey = getPlanKeyFromPriceId(priceId);
 
   await supabase
@@ -155,14 +155,14 @@ async function handleSubscriptionChange(supabase: any, sub: Stripe.Subscription)
       stripe_price_id: priceId,
       plan: planKey.toUpperCase(),
       plan_status: sub.status,
-      trial_ends_at: sub.trial_end
-        ? new Date(sub.trial_end * 1000).toISOString()
+      trial_ends_at: (sub as any).trial_end
+        ? new Date((sub as any).trial_end * 1000).toISOString()
         : null,
       current_period_start: new Date(
-        sub.current_period_start * 1000
+        (sub as any).current_period_start * 1000
       ).toISOString(),
-      current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
-      cancel_at_period_end: sub.cancel_at_period_end,
+      current_period_end: new Date((sub as any).current_period_end * 1000).toISOString(),
+      cancel_at_period_end: (sub as any).cancel_at_period_end,
     })
     .eq("id", orgId);
 }

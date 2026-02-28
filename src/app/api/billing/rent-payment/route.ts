@@ -11,9 +11,10 @@ import { createRentPaymentLink } from "@/lib/stripe/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createServerSupabaseClient();
-    const ctx = await getRequestContext(supabase);
+    const ctx = await getRequestContext();
     if (!ctx) return unauthorized();
+
+    const supabase = await createServerSupabaseClient();
 
     const { invoice_id } = await req.json();
     if (!invoice_id) return badRequest("invoice_id is required");

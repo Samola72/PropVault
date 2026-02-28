@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   CreditCard,
@@ -53,7 +53,7 @@ const STATUS_CONFIG: Record<
   },
 };
 
-export default function BillingPage() {
+function BillingContent() {
   const searchParams = useSearchParams();
   const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">(
     "monthly"
@@ -345,6 +345,14 @@ export default function BillingPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function BillingPage() {
+  return (
+    <Suspense fallback={<div className="max-w-5xl p-6">Loading billing information...</div>}>
+      <BillingContent />
+    </Suspense>
   );
 }
 

@@ -3,9 +3,10 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export async function GET() {
   try {
-    const supabase = await createServerSupabaseClient();
-    const ctx = await getRequestContext(supabase);
+    const ctx = await getRequestContext();
     if (!ctx) return unauthorized();
+
+    const supabase = await createServerSupabaseClient();
 
     const { data, error } = await supabase
       .from("users")
