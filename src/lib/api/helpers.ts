@@ -5,6 +5,7 @@ import type { User } from "@/types/database";
 
 export interface RequestContext {
   user: User;
+  userProfile: User;
   organizationId: string;
 }
 
@@ -27,6 +28,7 @@ export async function getRequestContext(): Promise<RequestContext | null> {
     const typedProfile = userProfile as any;
     return {
       user: typedProfile as User,
+      userProfile: typedProfile as User,
       organizationId: typedProfile.organization_id,
     };
   } catch {

@@ -14,7 +14,8 @@ export type UserRole =
   | "PROPERTY_MANAGER"
   | "MAINTENANCE_STAFF"
   | "ACCOUNTANT"
-  | "VIEWER";
+  | "VIEWER"
+  | "TENANT";
 
 export type PropertyType =
   | "APARTMENT"
@@ -104,7 +105,7 @@ export interface Database {
       occupants: {
         Row: Occupant;
         Insert: Omit<Occupant, "id" | "created_at" | "updated_at">;
-        Update: Partial<Omit<Occupant, "id" | "created_at">>;
+        Update: Partial<Occupant>;
       };
       work_orders: {
         Row: WorkOrder;
@@ -156,6 +157,15 @@ export interface Organization {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  // Stripe Integration fields
+  stripe_customer_id?: string | null;
+  stripe_subscription_id?: string | null;
+  stripe_price_id?: string | null;
+  plan_status?: "active" | "trialing" | "past_due" | "canceled" | "unpaid";
+  trial_ends_at?: string | null;
+  current_period_start?: string | null;
+  current_period_end?: string | null;
+  cancel_at_period_end?: boolean;
 }
 
 export interface User {
@@ -222,6 +232,12 @@ export interface Occupant {
   created_by: string;
   created_at: string;
   updated_at: string;
+  // Tenant Portal fields
+  portal_enabled?: boolean;
+  portal_invited_at?: string | null;
+  portal_last_login?: string | null;
+  portal_invitation_token?: string | null;
+  portal_user_id?: string | null;
   property?: Property;
 }
 
@@ -246,6 +262,9 @@ export interface WorkOrder {
   assigned_to: string | null;
   created_at: string;
   updated_at: string;
+  // Tenant Portal fields
+  submitted_by_tenant?: boolean;
+  tenant_notes?: string | null;
   property?: Property;
   occupant?: Occupant;
   service_provider?: ServiceProvider;
@@ -311,6 +330,9 @@ export interface Invoice {
   created_by: string;
   created_at: string;
   updated_at: string;
+  // Stripe Integration fields
+  stripe_payment_intent_id?: string | null;
+  stripe_payment_link?: string | null;
   property?: Property;
   work_order?: WorkOrder;
 }
@@ -358,6 +380,8 @@ export interface Message {
   is_read: boolean;
   attachments: string[];
   created_at: string;
+  // Tenant Portal field
+  is_tenant_message?: boolean;
   sender?: User;
   recipient?: User;
 }
