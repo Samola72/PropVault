@@ -2,7 +2,10 @@ import { z } from "zod";
 
 export const workOrderSchema = z.object({
   property_id: z.string().uuid("Invalid property"),
-  occupant_id: z.string().uuid().optional().or(z.literal("")).transform(val => val || undefined),
+  occupant_id: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.string().uuid().optional()
+  ),
   title: z.string().min(5, "Title must be at least 5 characters").max(500),
   description: z.string().min(10, "Description must be at least 10 characters"),
   category: z.enum([
@@ -12,10 +15,22 @@ export const workOrderSchema = z.object({
   ]),
   priority: z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW"]),
   estimated_cost: z.number().min(0).optional(),
-  due_date: z.string().optional().or(z.literal("")).transform(val => val || undefined),
-  assigned_to: z.string().uuid().optional().or(z.literal("")).transform(val => val || undefined),
-  notes: z.string().optional().or(z.literal("")).transform(val => val || undefined),
-  internal_notes: z.string().optional().or(z.literal("")).transform(val => val || undefined),
+  due_date: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.string().optional()
+  ),
+  assigned_to: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.string().uuid().optional()
+  ),
+  notes: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.string().optional()
+  ),
+  internal_notes: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.string().optional()
+  ),
 });
 
 export const workOrderUpdateSchema = z.object({
