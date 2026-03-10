@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Wrench, Calendar, User } from "lucide-react";
+import { Wrench, Calendar, User, Eye, ArrowRight } from "lucide-react";
 import { useWorkOrders } from "@/hooks/use-work-orders";
 import { PageHeader } from "@/components/shared/page-header";
 import { SearchInput } from "@/components/shared/search-input";
@@ -78,7 +78,7 @@ export default function WorkOrdersPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-100">
-                  {["Title", "Property", "Category", "Priority", "Status", "Created"].map((h) => (
+                  {["Title", "Property", "Category", "Priority", "Status", "Created", ""].map((h) => (
                     <th key={h} className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
                       {h}
                     </th>
@@ -87,7 +87,7 @@ export default function WorkOrdersPage() {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {workOrders.map((wo: any) => (
-                  <tr key={wo.id} className="hover:bg-gray-50 transition">
+                  <tr key={wo.id} className="hover:bg-gray-50 transition group">
                     <td className="px-6 py-4">
                       <Link href={`/work-orders/${wo.id}`} className="font-medium text-gray-900 hover:text-blue-600 transition line-clamp-1">
                         {wo.title}
@@ -107,6 +107,16 @@ export default function WorkOrdersPage() {
                         <Calendar className="w-3 h-3" />
                         {formatRelativeTime(wo.created_at)}
                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <Link 
+                        href={`/work-orders/${wo.id}`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition opacity-0 group-hover:opacity-100"
+                        title="View details"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        View
+                      </Link>
                     </td>
                   </tr>
                 ))}

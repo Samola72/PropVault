@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Settings, Building2, Bell, Shield, Users } from "lucide-react";
-import { useCurrentUser, useCurrentOrg } from "@/hooks/use-organization";
+import { Settings, Building2, Bell, Shield, Users, Loader2 } from "lucide-react";
+import { useCurrentUser, useCurrentOrg, useOrganization } from "@/hooks/use-organization";
 import { generateInitials } from "@/lib/utils";
+import { Skeleton } from "@/components/shared/loading-skeleton";
 
 const tabs = [
   { id: "profile", label: "Profile", icon: Users },
@@ -14,6 +15,7 @@ const tabs = [
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("profile");
+  const { isInitialized } = useOrganization();
   const user = useCurrentUser();
   const org = useCurrentOrg();
 
@@ -46,68 +48,108 @@ export default function SettingsPage() {
 
         {/* Content */}
         <div className="flex-1 bg-white rounded-2xl border border-gray-100 p-6">
-          {activeTab === "profile" && user && (
-            <div className="space-y-6">
-              <h2 className="text-lg font-semibold text-gray-900">Profile Settings</h2>
-              <div className="flex items-center gap-5">
-                <div className="w-20 h-20 rounded-2xl bg-blue-100 text-blue-700 font-bold text-2xl flex items-center justify-center">
-                  {generateInitials(user.full_name)}
+          {activeTab === "profile" && (
+            <>
+              {!isInitialized ? (
+                <div className="space-y-6">
+                  <Skeleton className="h-8 w-48" />
+                  <div className="flex items-center gap-5">
+                    <Skeleton className="w-20 h-20 rounded-2xl" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-6 w-48" />
+                      <Skeleton className="h-4 w-64" />
+                      <Skeleton className="h-3 w-32" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+                    <Skeleton className="h-12 rounded-xl" />
+                    <Skeleton className="h-12 rounded-xl" />
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold text-gray-900">{user.full_name}</p>
-                  <p className="text-sm text-gray-500">{user.email}</p>
-                  <p className="text-xs text-blue-600 font-medium mt-1 capitalize">{user.role.toLowerCase().replace("_", " ")}</p>
+              ) : user ? (
+                <div className="space-y-6">
+                  <h2 className="text-lg font-semibold text-gray-900">Profile Settings</h2>
+                  <div className="flex items-center gap-5">
+                    <div className="w-20 h-20 rounded-2xl bg-blue-100 text-blue-700 font-bold text-2xl flex items-center justify-center">
+                      {generateInitials(user.full_name)}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">{user.full_name}</p>
+                      <p className="text-sm text-gray-500">{user.email}</p>
+                      <p className="text-xs text-blue-600 font-medium mt-1 capitalize">{user.role.toLowerCase().replace("_", " ")}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                      <input defaultValue={user.full_name}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                      <input defaultValue={user.phone || ""} placeholder="+234..."
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>
+                  <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition">
+                    Save Changes
+                  </button>
                 </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                  <input defaultValue={user.full_name}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-gray-500 mb-2">Failed to load profile data</p>
+                  <button 
+                    onClick={() => window.location.reload()} 
+                    className="text-blue-600 text-sm hover:underline"
+                  >
+                    Retry
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                  <input defaultValue={user.phone || ""} placeholder="+234..."
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-              </div>
-              <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition">
-                Save Changes
-              </button>
-            </div>
+              )}
+            </>
           )}
 
-          {activeTab === "profile" && !user && (
-            <div className="text-center py-12">
-              <p className="text-gray-500">Loading profile data...</p>
-            </div>
-          )}
-
-          {activeTab === "organization" && org && (
-            <div className="space-y-6">
-              <h2 className="text-lg font-semibold text-gray-900">Organization Settings</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Organization Name</label>
-                  <input defaultValue={org.name}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          {activeTab === "organization" && (
+            <>
+              {!isInitialized ? (
+                <div className="space-y-6">
+                  <Skeleton className="h-8 w-48" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Skeleton className="h-12 rounded-xl" />
+                    <Skeleton className="h-12 rounded-xl" />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Plan</label>
-                  <input value={org.plan} readOnly
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-500" />
+              ) : org ? (
+                <div className="space-y-6">
+                  <h2 className="text-lg font-semibold text-gray-900">Organization Settings</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Organization Name</label>
+                      <input defaultValue={org.name}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Plan</label>
+                      <input value={org.plan} readOnly
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-500" />
+                    </div>
+                  </div>
+                  <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition">
+                    Save Changes
+                  </button>
                 </div>
-              </div>
-              <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition">
-                Save Changes
-              </button>
-            </div>
-          )}
-
-          {activeTab === "organization" && !org && (
-            <div className="text-center py-12">
-              <p className="text-gray-500">Loading organization data...</p>
-            </div>
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-gray-500 mb-2">Failed to load organization data</p>
+                  <button 
+                    onClick={() => window.location.reload()} 
+                    className="text-blue-600 text-sm hover:underline"
+                  >
+                    Retry
+                  </button>
+                </div>
+              )}
+            </>
           )}
 
           {activeTab === "notifications" && (

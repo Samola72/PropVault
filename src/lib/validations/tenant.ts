@@ -16,10 +16,17 @@ export const tenantSchema = z.object({
   lease_start: z.string().min(1, "Lease start date is required"),
   lease_end: z.string().min(1, "Lease end date is required"),
   monthly_rent: z.number().min(0, "Monthly rent is required"),
-  security_deposit: z.number().min(0),
-  status: z.enum(["ACTIVE", "INACTIVE", "EVICTION", "PENDING"]),
+  security_deposit: z.number().min(0).optional(),
+  status: z.enum(["ACTIVE", "INACTIVE", "EVICTION", "PENDING"]).optional(),
   notes: z.string().optional(),
 });
 
 export type TenantFormData = z.infer<typeof tenantSchema>;
 export const tenantUpdateSchema = tenantSchema.partial();
+
+// For API - applies defaults for optional fields
+export const tenantCreateSchema = tenantSchema.transform((data) => ({
+  ...data,
+  security_deposit: data.security_deposit ?? 0,
+  status: data.status ?? "ACTIVE",
+}));

@@ -10,7 +10,7 @@ import {
   badRequest,
   logAudit,
 } from "@/lib/api/helpers";
-import { tenantSchema } from "@/lib/validations/tenant";
+import { tenantSchema, tenantCreateSchema } from "@/lib/validations/tenant";
 
 export async function GET(request: NextRequest) {
   try {
@@ -72,14 +72,17 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const parsed = tenantSchema.safeParse(body);
+    const validated = tenantSchema.safeParse(body);
 
-    if (!parsed.success) {
-      return badRequest(parsed.error.issues[0].message);
+    if (!validated.success) {
+      return badRequest(validated.error.issues[0].message);
     }
 
+    // Apply defaults for optional fields
+    const parsed = tenantCreateSchema.parse(validated.data);
+
     // Validate lease dates
-    if (new Date(parsed.data.lease_end) <= new Date(parsed.data.lease_start)) {
+    if (new Date(parsed.lease_end) <= new Date(parsed.lease_start)) {
       return badRequest("Lease end date must be after lease start date");
     }
 
@@ -89,7 +92,7 @@ export async function POST(request: NextRequest) {
     const { data: property } = await (supabase
       .from("properties") as any)
       .select("id, status")
-      .eq("id", parsed.data.property_id)
+      .eq("id", parsed.property_id)
       .eq("organization_id", ctx.organizationId)
       .single();
 
@@ -98,7 +101,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await (supabase
       .from("occupants") as any)
       .insert({
-        ...parsed.data,
+        ...parsed,
         organization_id: ctx.organizationId,
         created_by: ctx.user.id,
       })
@@ -111,7 +114,7 @@ export async function POST(request: NextRequest) {
     await (supabase
       .from("properties") as any)
       .update({ status: "OCCUPIED" })
-      .eq("id", parsed.data.property_id);
+      .eq("id", parsed.property_id);
 
     await logAudit({
       organizationId: ctx.organizationId,
@@ -119,7 +122,7 @@ export async function POST(request: NextRequest) {
       action: "CREATE",
       entityType: "occupant",
       entityId: data.id,
-      changes: parsed.data,
+      changes: parsed,
     });
 
     return created(data);

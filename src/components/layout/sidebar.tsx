@@ -98,27 +98,37 @@ export function Sidebar() {
         <Link href="/settings" className={cn(
           "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition",
           sidebarCollapsed && "justify-center"
-        )}>
+        )}
+        title={sidebarCollapsed ? "Settings" : undefined}
+        >
           <Settings className="w-4 h-4 text-gray-500 flex-shrink-0" />
           {!sidebarCollapsed && "Settings"}
         </Link>
         {user && (
-          <div className={cn("flex items-center gap-3 px-3 py-2 rounded-xl", sidebarCollapsed && "justify-center")}>
-            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-semibold text-xs flex items-center justify-center flex-shrink-0">
-              {generateInitials(user.full_name)}
-            </div>
-            {!sidebarCollapsed && (
-              <>
+          <>
+            <div className={cn("flex items-center gap-3 px-3 py-2 rounded-xl", sidebarCollapsed && "justify-center")}>
+              <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-semibold text-xs flex items-center justify-center flex-shrink-0">
+                {generateInitials(user.full_name)}
+              </div>
+              {!sidebarCollapsed && (
                 <div className="flex-1 overflow-hidden">
                   <p className="text-sm font-medium text-gray-900 truncate">{user.full_name}</p>
                   <p className="text-xs text-gray-500 capitalize">{user.role.toLowerCase().replace("_", " ")}</p>
                 </div>
-                <button onClick={() => signOut()} className="p-1 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-red-500">
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </>
-            )}
-          </div>
+              )}
+            </div>
+            <button 
+              onClick={() => signOut()} 
+              className={cn(
+                "flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition",
+                sidebarCollapsed && "justify-center"
+              )}
+              title={sidebarCollapsed ? "Logout" : undefined}
+            >
+              <LogOut className="w-4 h-4 flex-shrink-0" />
+              {!sidebarCollapsed && "Logout"}
+            </button>
+          </>
         )}
       </div>
     </aside>

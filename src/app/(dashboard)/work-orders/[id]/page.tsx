@@ -5,7 +5,7 @@ import { use } from "react";
 import { useRouter } from "next/navigation";
 import {
   Wrench, User, Building2, Calendar, DollarSign,
-  Edit, Trash2, CheckCircle2, Clock
+  Edit, Trash2, CheckCircle2, Clock, Send
 } from "lucide-react";
 import { useWorkOrder, useUpdateWorkOrder, useDeleteWorkOrder } from "@/hooks/use-work-orders";
 import { DetailHeader } from "@/components/shared/detail-header";
@@ -14,6 +14,7 @@ import { InfoCard, InfoRow } from "@/components/shared/info-row";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { PriorityBadge } from "@/components/shared/priority-badge";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { Modal } from "@/components/shared/modal";
 import { Skeleton } from "@/components/shared/loading-skeleton";
 import { formatCurrency, formatDate, formatDateTime, formatRelativeTime } from "@/lib/utils";
 import { ROUTES } from "@/lib/constants";
@@ -37,13 +38,52 @@ export default function WorkOrderDetailPage({
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("details");
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [updateOpen, setUpdateOpen] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState("");
+  const [updateMessage, setUpdateMessage] = useState("");
+  const [updateCost, setUpdateCost] = useState("");
+  const [updating, setUpdating] = useState(false);
 
   const { data: workOrder, isLoading } = useWorkOrder(id);
   const deleteWorkOrder = useDeleteWorkOrder();
+  const updateWorkOrder = useUpdateWorkOrder();
 
   async function handleDelete() {
     await deleteWorkOrder.mutateAsync(id);
     router.push(ROUTES.WORK_ORDERS);
+  }
+
+  async function handleStatusUpdate() {
+    if (!updateMessage.trim() || !updateStatus) {
+      alert("Please provide a status and update message");
+      return;
+    }
+
+    setUpdating(true);
+    try {
+      await updateWorkOrder.mutateAsync({
+        id,
+        data: {
+          status: updateStatus,
+          message: updateMessage,
+          actual_cost: updateCost ? parseFloat(updateCost) : undefined,
+        },
+      });
+      setUpdateOpen(false);
+      setUpdateMessage("");
+      setUpdateCost("");
+      setUpdateStatus("");
+    } catch (error) {
+      console.error("Failed to update work order:", error);
+      alert("Failed to update work order. Please try again.");
+    } finally {
+      setUpdating(false);
+    }
+  }
+
+  function openStatusUpdate(status?: string) {
+    setUpdateStatus(status || workOrder?.status || "");
+    setUpdateOpen(true);
   }
 
   if (isLoading) {
@@ -105,6 +145,33 @@ export default function WorkOrderDetailPage({
       />
 
       <DetailTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+
+      {/* Quick Actions Bar */}
+      {workOrder.status !== "COMPLETED" && workOrder.status !== "CLOSED" && workOrder.status !== "CANCELLED" && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-6 flex flex-wrap gap-3">
+          <button
+            onClick={() => openStatusUpdate("IN_PROGRESS")}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-xl hover:bg-blue-100 transition text-sm font-medium"
+          >
+            <Clock className="w-4 h-4" />
+            Start Work
+          </button>
+          <button
+            onClick={() => openStatusUpdate("COMPLETED")}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-xl hover:bg-green-100 transition text-sm font-medium"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            Mark Complete
+          </button>
+          <button
+            onClick={() => openStatusUpdate()}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 rounded-xl hover:bg-gray-100 transition text-sm font-medium"
+          >
+            <Send className="w-4 h-4" />
+            Add Update
+          </button>
+        </div>
+      )}
 
       {/* Details Tab */}
       {activeTab === "details" && (
@@ -264,6 +331,106 @@ export default function WorkOrderDetailPage({
         onConfirm={handleDelete}
         onCancel={() => setDeleteOpen(false)}
       />
+
+      {/* Status Update Modal */}
+      <Modal
+        open={updateOpen}
+        onClose={() => {
+          setUpdateOpen(false);
+          setUpdateMessage("");
+          setUpdateCost("");
+        }}
+        title="Update Work Order Status"
+        description="Add an update and optionally change the status"
+        size="md"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Status *
+            </label>
+            <select
+              value={updateStatus}
+              onChange={(e) => setUpdateStatus(e.target.value)}
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="OPEN">Open</option>
+              <option value="ASSIGNED">Assigned</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="PENDING_PARTS">Pending Parts</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="CLOSED">Closed</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Update Message *
+            </label>
+            <textarea
+              value={updateMessage}
+              onChange={(e) => setUpdateMessage(e.target.value)}
+              rows={4}
+              placeholder="Describe what was done, current status, next steps..."
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {updateStatus === "COMPLETED" && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Actual Cost (optional)
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+                <input
+                  type="number"
+                  value={updateCost}
+                  onChange={(e) => setUpdateCost(e.target.value)}
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  className="w-full pl-8 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-3 justify-end pt-4 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={() => {
+                setUpdateOpen(false);
+                setUpdateMessage("");
+                setUpdateCost("");
+              }}
+              disabled={updating}
+              className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleStatusUpdate}
+              disabled={updating || !updateMessage.trim() || !updateStatus}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {updating ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  Post Update
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
