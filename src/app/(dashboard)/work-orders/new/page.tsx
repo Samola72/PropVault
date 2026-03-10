@@ -69,13 +69,16 @@ function NewWorkOrderContent() {
   }));
 
   async function onSubmit(data: WorkOrderFormData) {
-    // Convert empty strings to null for optional UUID fields
+    // Convert empty strings to undefined for validation, then null for API
     const cleanedData = {
       ...data,
-      occupant_id: data.occupant_id || null,
-      assigned_to: data.assigned_to || null,
+      occupant_id: data.occupant_id || undefined,
+      assigned_to: data.assigned_to || undefined,
+      due_date: data.due_date || undefined,
+      notes: data.notes || undefined,
+      internal_notes: data.internal_notes || undefined,
     };
-    const wo = await createWorkOrder.mutateAsync(cleanedData);
+    const wo = await createWorkOrder.mutateAsync(cleanedData as any);
     router.push(`/work-orders/${wo.id}`);
   }
 
