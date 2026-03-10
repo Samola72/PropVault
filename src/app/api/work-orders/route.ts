@@ -81,15 +81,25 @@ export async function POST(request: NextRequest) {
       return badRequest(parsed.error.issues[0].message);
     }
 
+    // Convert empty strings to null for optional fields
+    const cleanData = {
+      ...parsed.data,
+      occupant_id: parsed.data.occupant_id === "" ? null : parsed.data.occupant_id,
+      assigned_to: parsed.data.assigned_to === "" ? null : parsed.data.assigned_to,
+      due_date: parsed.data.due_date === "" ? null : parsed.data.due_date,
+      notes: parsed.data.notes === "" ? null : parsed.data.notes,
+      internal_notes: parsed.data.internal_notes === "" ? null : parsed.data.internal_notes,
+    };
+
     const supabase = await createServerSupabaseClient();
 
     const { data, error } = await (supabase
       .from("work_orders") as any)
       .insert({
-        ...parsed.data,
+        ...cleanData,
         organization_id: ctx.organizationId,
         created_by: ctx.user.id,
-        status: parsed.data.assigned_to ? "ASSIGNED" : "OPEN",
+        status: cleanData.assigned_to ? "ASSIGNED" : "OPEN",
       })
       .select(
         `*,
@@ -101,13 +111,13 @@ export async function POST(request: NextRequest) {
     if (error) return serverError(error);
 
     // Notify assigned provider if applicable
-    if (parsed.data.assigned_to) {
+    if (cleanData.assigned_to) {
       await (supabase.from("notifications") as any).insert({
         organization_id: ctx.organizationId,
         user_id: ctx.user.id,
         type: "WORK_ORDER_CREATED",
         title: "New Work Order Assigned",
-        message: `Work order "${parsed.data.title}" has been assigned to you`,
+        message: `Work order "${cleanData.title}" has been assigned to you`,
         data: { work_order_id: data.id },
       });
     }
@@ -118,7 +128,7 @@ export async function POST(request: NextRequest) {
       action: "CREATE",
       entityType: "work_order",
       entityId: data.id,
-      changes: parsed.data,
+      changes: cleanData,
     });
 
     return created(data);

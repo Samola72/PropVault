@@ -1,11 +1,16 @@
 import { z } from "zod";
 
+// Custom refinement to allow empty strings for optional UUID fields
+const optionalUuid = z.string().refine(
+  (val) => val === "" || z.string().uuid().safeParse(val).success,
+  { message: "Invalid UUID" }
+).optional();
+
+const optionalString = z.string().optional();
+
 export const workOrderSchema = z.object({
   property_id: z.string().uuid("Invalid property"),
-  occupant_id: z.preprocess(
-    (val) => (val === "" ? undefined : val),
-    z.string().uuid().optional()
-  ),
+  occupant_id: optionalUuid,
   title: z.string().min(5, "Title must be at least 5 characters").max(500),
   description: z.string().min(10, "Description must be at least 10 characters"),
   category: z.enum([
@@ -15,22 +20,10 @@ export const workOrderSchema = z.object({
   ]),
   priority: z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW"]),
   estimated_cost: z.number().min(0).optional(),
-  due_date: z.preprocess(
-    (val) => (val === "" ? undefined : val),
-    z.string().optional()
-  ),
-  assigned_to: z.preprocess(
-    (val) => (val === "" ? undefined : val),
-    z.string().uuid().optional()
-  ),
-  notes: z.preprocess(
-    (val) => (val === "" ? undefined : val),
-    z.string().optional()
-  ),
-  internal_notes: z.preprocess(
-    (val) => (val === "" ? undefined : val),
-    z.string().optional()
-  ),
+  due_date: optionalString,
+  assigned_to: optionalUuid,
+  notes: optionalString,
+  internal_notes: optionalString,
 });
 
 export const workOrderUpdateSchema = z.object({
